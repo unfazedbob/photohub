@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.frame.dao.PhotohubMapper">
+
+
+    <sql id="selectFields">
+        id, owner_id, type,comment,location
+    </sql>
+   <insert id="insertPhoto" parameterType="com.frame.entity.photo">
+        insert into photo(id,owner_id,location,type,comment) values(#{id},#{owner_id},#{location},#{type},#{comment})
+
+   </insert>
+
+
+    <select id="selectAllPhotoByOwnerID" parameterType="Integer" resultType="com.frame.entity.photo">
+        select <include refid="selectFields"/> from photo where owner_id=#{id}
+    </select>
+
+
+</mapper>
