@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>照片管理系统</title>
+  <!-- https://picnicss.com/documentation -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
+</head>
+
+<body>
+  <nav style="position: unset;">
+    <a class="brand">照片管理系统</a>
+  </nav>
+  <div class="flex five" style="max-width: 1280px; margin: 64px auto;">
+    <div>
+      <div><a class="pseudo button" href="/user.html">用户状态</a></div>
+      <div><a class="pseudo button" href="/upload.html">照片上传</a></div>
+      <div><a class="pseudo button" href="/view.html">我的照片</a></div>
+    </div>
+    <div class="four-fifth">
+
+      <h2>用户登录</h2>
+      <div id="message" style="margin-bottom: 2em;"></div>
+      <form style="max-width: 20em;">
+        <label for="username">用户名：</label>
+        <input type="text" id="username" name="username" autocomplete="off">
+        <label for="password">密码：</label>
+        <input type="password" id="password" name="password" autocomplete="off">
+      </form>
+      <button id="register">注册</button>
+      <button id="login">登录</button>
+      <button id="logout">登出</button>
+
+      <script>
+        function updateMessage(info) {
+          let text = "";
+          if (info.message) text += `${info.message}<br>`;
+          if (info.logined) text += `当前用户：${info.username}`;
+          else text += `当前没有登录用户。`;
+          document.querySelector("#message").innerHTML  = text;
+        }
+
+        (async () => {
+          const resp = await fetch('/api/user/status');
+          updateMessage(await resp.json());
+        })();
+
+        document.querySelector("#register").addEventListener("click", async (ev) => {
+          ev.preventDefault();
+          const resp = await fetch('/api/user/register', {
+            method: 'POST',
+            body: new FormData(document.querySelector("form")),
+          });
+          updateMessage(await resp.json());
+        })
+
+        document.querySelector("#login").addEventListener("click", async () => {
+          const resp = await fetch('/api/user/login', {
+            method: 'POST',
+            body: new FormData(document.querySelector("form")),
+          });
+          updateMessage(await resp.json());
+        })
+
+        document.querySelector("#logout").addEventListener("click", async () => {
+          const resp = await fetch('/api/user/logout', { method: 'POST' });
+          updateMessage(await resp.json());
+        });
+      </script>
+
+    </div>
+  </div>
+  </script>
+</body>
+
+</html>
