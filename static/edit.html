@@ -24,21 +24,46 @@
       <h2>编辑照片</h2>
       <form id="container" style="max-width: 600px;"></form>
       <button id="submitInfo">更新</button>
+      <button class="editPhoto" data-cmd="-rotate 90">顺时针旋转</button>
+      <button class="editPhoto" data-cmd="-rotate 270">逆时针旋转</button>
+      <button class="editPhoto" data-cmd="-flip">垂直翻转</button>
+      <button class="editPhoto" data-cmd="-flop">水平翻转</button>
       <script>
         function updateInfo(info) {
           const data = info.data;
           document.querySelector("#container").innerHTML = `
-            <img src="${data.url}" style="max-width: 200px">
+            <img src="${data.url}" style="max-width: 50vw">
             <div>照片 ID：${data.id}</div>
-            <label for="comment">注释</label>
-            <textarea id="comment" name="comment">${data.comment}</textarea>
+            <div>
+              <label for="category">分类：</label>
+              <input type="text" name="category" id="category" style="max-width: 20em;" value="${data.category}" list="categories">
+              <datalist id="categories"></datalist>
+            </div>
+            <div>
+              <label for="comment">注释：</label>
+              <input type="text" id="comment" name="comment" value="${data.comment}" style="max-width: 20em;"/>
+            </div>
             `;
+        }
+
+        async function fetchCategories() {
+          const resp = await fetch(`/api/category`);
+          const json = await resp.json();
+          if (json.ok) {
+            const datalist = document.getElementById('categories');
+            json.categories.forEach(category => {
+              const option = document.createElement('option');
+              option.value = category;
+              datalist.appendChild(option);
+            });
+          }
         }
 
         (async () => {
           const id = new URLSearchParams(window.location.search).get("id")
           const resp = await fetch(`/api/photo/${id}`);
           updateInfo(await resp.json());
+          await fetchCategories();
         })()
 
         document.querySelector("#submitInfo").addEventListener("click", async () => {
@@ -49,6 +74,24 @@
           });
           updateInfo(await resp.json());
         });
+
+        for (const el of document.querySelectorAll(".editPhoto")) {
+          el.addEventListener("click", async (el) => {
+            const id = new URLSearchParams(window.location.search).get("id");
+            const formData = new FormData();
+            formData.append('cmd', el.target.dataset.cmd);
+            const resp = await fetch(`/api/photo/${id}/edit`, {
+              method: 'POST',
+              body: formData,
+            });
+            const json = await resp.json();
+            if (json.ok) {
+              location.reload()
+            } else {
+              alert(json.message);
+            }
+          });
+        }
       </script>
 
     </div>

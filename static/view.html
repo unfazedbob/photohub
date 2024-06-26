@@ -22,6 +22,17 @@
     <div class="four-fifth">
 
       <h2>我的照片</h2>
+      <div class="flex two">
+        <div>
+          <input type="text" id="searchInput" style="max-width: 20em;">
+          <button id="searchButton">搜索</button>
+        </div>
+        <div>
+          <select id="categorySelect">
+            <option value="">所有分类</option>
+          </select>
+        </div>
+      </div>
       <div id="message"></div>
       <div class="flex five" id="photo-container">
       </div>
@@ -29,8 +40,26 @@
     </div>
   </div>
   <script>
-    (async () => {
-      const resp = await fetch('/api/photos');
+    async function fetchCategories() {
+      const resp = await fetch('/api/category');
+      const json = await resp.json();
+
+      if (!json.ok) {
+        console.error(json.message);
+        return;
+      }
+
+      const categorySelect = document.querySelector("#categorySelect");
+      json.categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.text = category;
+        categorySelect.appendChild(option);
+      });
+    }
+
+    async function fetchPhotos(query = '', category = '') {
+      const resp = await fetch(`/api/photos?q=${encodeURIComponent(query)}&cat=${encodeURIComponent(category)}`);
       const json = await resp.json();
       // console.log(json);
 
@@ -47,10 +76,26 @@
           <img src="${photo.url}" style="max-width: 100%">
           <div>${photo.comment}</div>
           <a class="button" href="/edit.html?id=${photo.id}">编辑</a>
+          <a class="button" href="/share.html?id=${photo.id}">分享</a>
         </div>`
       }
       document.querySelector("#photo-container").innerHTML = html;
-    })();
+    }
+
+    document.querySelector("#searchButton").addEventListener("click", () => {
+      const query = document.querySelector("#searchInput").value;
+      const category = document.querySelector("#categorySelect").value;
+      fetchPhotos(query, category);
+    });
+
+    document.querySelector("#categorySelect").addEventListener("change", () => {
+      const query = document.querySelector("#searchInput").value;
+      const category = document.querySelector("#categorySelect").value;
+      fetchPhotos(query, category);
+    });
+
+    fetchCategories();
+    fetchPhotos();
   </script>
 </body>
 

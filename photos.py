@@ -1,10 +1,4 @@
-import os
-import uuid
-import hashlib
-
-from flask import Flask, request, abort, send_file, session
-import pymysql
-from pymysql.constants import CLIENT
+from flask import request, abort, send_file, session
 
 from db import connection
 
@@ -17,9 +11,27 @@ def all_photo():
             'message': "没有登录"
         }
 
+    search_query = request.args.get('q')
+    category_query = request.args.get('cat')
+
     with connection().cursor() as cur:
-        sql = 'SELECT id, owner_id, filename, category, comment FROM photo WHERE owner_id = %s'
-        cur.execute(sql, (int(session['user_id'])))
+        sql = '''
+        SELECT id, owner_id, filename, category, comment 
+        FROM photo 
+        WHERE owner_id = %s
+        '''
+        params = [int(session['user_id'])]
+
+        if search_query:
+            sql += ' AND comment LIKE %s'
+            params.append(f'%{search_query}%')
+
+        if category_query and category_query != '':
+            sql += ' AND category = %s'
+            params.append(category_query)
+
+        cur.execute(sql, params)
+
         data = []
         for (id, owner_id, filename, category, comment) in cur.fetchall():
             data.append({
@@ -76,15 +88,17 @@ def update_photo(id):
     with connection().cursor() as cur:
         sql = '''
         UPDATE photo
-        SET comment = %s
+        SET comment = %s, category = %s
         WHERE owner_id = %s AND id = %s
         '''
         cur.execute(sql, (
             request.form['comment'],
+            request.form['category'],
             int(session['user_id']),
             photo_id,
         ))
         sql = 'SELECT id, owner_id, filename, category, comment FROM photo WHERE owner_id = %s AND id = %s'
+        cur.execute(sql, (int(session['user_id']), photo_id))
         (id, owner_id, filename, category, comment) = cur.fetchone()
         return {
             'ok': True,

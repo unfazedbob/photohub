@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>照片管理系统</title>
+  <!-- https://picnicss.com/documentation -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
+</head>
+
+<body>
+  <nav style="position: unset;">
+    <a class="brand">照片管理系统</a>
+  </nav>
+  <div class="flex five" style="max-width: 1280px; margin: 64px auto;">
+    <div>
+      <div><a class="pseudo button" href="/user.html">用户状态</a></div>
+      <div><a class="pseudo button" href="/upload.html">照片上传</a></div>
+      <div><a class="pseudo button" href="/view.html">我的照片</a></div>
+    </div>
+    <div class="four-fifth">
+
+      <h2>查看分享的照片</h2>
+      <div class="require-password" style="display: none;">
+        <label for="password">输入密码：</label>
+        <input type="text" name="password" style="max-width: 20em;" />
+        <button id="submitInfo">查看</button>
+      </div>
+      <div id="photo-container" style="display: none;">
+        <img id="shared-photo" src="" style="max-width: 50vw;">
+      </div>
+      <script>
+        (async () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const id = urlParams.get('id');
+
+          if (!id) {
+            alert('缺少分享ID');
+            return;
+          }
+
+          const resp = await fetch(`/api/share/${id}`);
+          const data = await resp.json();
+
+          if (data.ok) {
+            document.querySelector('#shared-photo').src = `/api/image/${data.data.filename}`;
+            document.querySelector('#photo-container').style.display = 'block';
+          } else {
+            document.querySelector('.require-password').style.display = 'block';
+          }
+        })();
+
+        document.querySelector('#submitInfo').addEventListener('click', async () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const id = urlParams.get('id');
+          const password = document.querySelector('input[name="password"]').value;
+
+          const resp = await fetch(`/api/share/${id}?password=${password}`);
+          const data = await resp.json();
+
+          if (data.ok) {
+            document.querySelector('#shared-photo').src = `/api/image/${data.data.filename}`;
+            document.querySelector('#photo-container').style.display = 'block';
+            document.querySelector('.require-password').style.display = 'none';
+          } else {
+            alert('密码错误');
+          }
+        });
+      </script>
+
+
+    </div>
+  </div>
+</body>
+
+</html>

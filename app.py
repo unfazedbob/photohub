@@ -38,6 +38,9 @@ import user
 import upload
 import image
 import photos
+import share
+import category
+import edit
 
 app.add_url_rule('/api/user/status', view_func=user.status)
 app.add_url_rule('/api/user/register', view_func=user.register, methods=['POST'])
@@ -50,3 +53,10 @@ app.add_url_rule('/api/image/<filename>', view_func=image.image)
 app.add_url_rule('/api/photos', view_func=photos.all_photo)
 app.add_url_rule('/api/photo/<id>', view_func=photos.single_photo)
 app.add_url_rule('/api/photo/<id>/update', view_func=photos.update_photo, methods=['POST'])
+
+app.add_url_rule('/api/share/<id>', view_func=share.view_share)
+app.add_url_rule('/api/photo/<id>/share', view_func=share.share_photo, methods=['POST'])
+
+app.add_url_rule('/api/category', view_func=category.get_categories)
+
+app.add_url_rule('/api/photo/<id>/edit', view_func=edit.edit_photo, methods=['POST'])
