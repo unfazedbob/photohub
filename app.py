@@ -5,35 +5,33 @@ import hashlib
 from flask import Flask, request, abort, send_file, session
 import pymysql
 from pymysql.constants import CLIENT
+from db import connection
 
+# 定义文件保存路径
 FILE_SAVE_PATH = './image'
 
-def connection():
-    conn = pymysql.connect(
-        host='192.168.2.8',
-        user='piggy',
-        password='123456',
-        database='photohub',
-        client_flag=CLIENT.MULTI_STATEMENTS,
-        autocommit=True,
-    )
-    return conn
-
+# 创建Flask应用实例
 app = Flask(__name__, static_url_path='')
+# 设置Flask应用的密钥，用于session加密
 app.secret_key = 'photohubxstdgmhjxvsptbpzvgzxfnvqv'
 
+# 初始化数据库和文件保存路径的命令
 @app.cli.command("init")
 def init():
     with connection().cursor() as cur:
+        # 读取SQL文件并执行初始化脚本
         init_sql = open('db.sql').read()
         cur.execute(init_sql)
 
+    # 创建文件保存路径，如果已存在则忽略
     os.makedirs(FILE_SAVE_PATH, exist_ok=True)
 
+# 首页路由，返回静态文件
 @app.get('/')
 def index():
     return app.send_static_file('index.html')
 
+# 导入各个模块的视图函数
 import user
 import upload
 import image
@@ -42,6 +40,7 @@ import share
 import category
 import edit
 
+# 定义各个API路由和对应的视图函数
 app.add_url_rule('/api/user/status', view_func=user.status)
 app.add_url_rule('/api/user/register', view_func=user.register, methods=['POST'])
 app.add_url_rule('/api/user/login', view_func=user.login, methods=['POST'])
